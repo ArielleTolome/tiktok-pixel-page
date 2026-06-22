@@ -60,7 +60,7 @@
   <div class="card">
     <div class="ph"><span class="pill sc">Snapchat</span><strong>Pixel base code</strong></div>
     <label>Pixel ID <span style="color:var(--muted)">(Events Manager &rarr; your pixel &rarr; Settings)</span></label>
-    <input id="scPixel" placeholder="Paste your Snapchat Pixel ID">
+    <input id="scPixel" value="6e209c05-0dd4-4071-8f65-2a3adf1bf97c" placeholder="Paste your Snapchat Pixel ID">
     <div class="btns">
       <button class="primary" id="scInit">Install base code &amp; fire PAGE_VIEW</button>
       <button class="ghost" id="scAll" disabled>Fire all standard events</button>
@@ -146,10 +146,13 @@
 
   $("clear").onclick=function(){$("log").innerHTML="";};
 
-  // auto-install TikTok on load (so just opening the URL registers the pixel)
+  // auto-install both pixels on load + fire a validation pass so activity registers
   window.addEventListener("load",function(){
-    setTimeout(function(){ $("ttInit").click(); }, 600);
-    log("Page loaded. TikTok base code auto-installing; add your Snapchat Pixel ID to enable it.","c");
+    setTimeout(function(){ $("ttInit").click(); }, 500);
+    setTimeout(function(){ $("scInit").click(); }, 1300);
+    setTimeout(function(){ if(ttReady) $("ttAll").click(); }, 3000);
+    setTimeout(function(){ if(scReady) $("scAll").click(); }, 4800);
+    log("Page loaded. Auto-installing TikTok + Snapchat base code and firing standard browser events.","c");
   });
 })();
 </script>
