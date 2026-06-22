@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Activation Page</title>
+<style>
+  :root{--bg:#0f1115;--panel:#171a21;--panel2:#1d212b;--line:#2a2f3a;--text:#e9edf3;
+    --muted:#9aa4b2;--teal:#25d4c4;--teal-d:#14b3a5;--yellow:#fcd34d;--green:#36d399;--red:#f87272;--chip:#222834;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5;padding:24px}
+  .wrap{max-width:880px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+  .ph{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+  .pill{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
+  .tt{background:#111;color:#fff} .sc{background:var(--yellow);color:#111}
+  label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px}
+  input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);
+    border-radius:9px;padding:11px 12px;font-size:14px;font-family:ui-monospace,Menlo,monospace}
+  input:focus{outline:none;border-color:var(--teal)}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  button{border:none;border-radius:10px;padding:11px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  .primary{background:var(--teal);color:#06231f} .primary:hover{background:var(--teal-d)}
+  .ghost{background:transparent;color:var(--muted);border:1px solid var(--line)} .ghost:hover{color:var(--text)}
+  .status{font-size:13px;margin-top:12px;color:var(--muted)}
+  .ok{color:var(--green)} .bad{color:var(--red)}
+  .log{background:#0b0d11;border:1px solid var(--line);border-radius:10px;padding:12px;height:200px;overflow:auto;
+    font-family:ui-monospace,Menlo,monospace;font-size:12px;margin-top:14px}
+  .log .line{padding:2px 0;border-bottom:1px solid #14171d;white-space:pre-wrap;word-break:break-word}
+  .t{color:var(--muted)} .g{color:var(--green)} .c{color:var(--teal)} .y{color:var(--yellow)}
+  .dommsg{font-size:12px;margin-top:10px;padding:9px 11px;border-radius:8px}
+  .domok{background:#06251f;color:#8ff0d8;border:1px solid #14463c}
+  .domwarn{background:#2a1d06;color:#f4cf86;border:1px solid #4a3a12}
+  code{background:var(--chip);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Pixel Activation Page</h1>
+  <p class="sub">Open this page over your tailnet HTTPS URL. On load it installs the base code and fires real browser events with a genuine domain &amp; cookie &mdash; which is what TikTok / Snapchat credit toward "Browser events received."</p>
+
+  <div id="domBox" class="dommsg domwarn">Checking how this page was opened&hellip;</div>
+
+  <!-- TikTok -->
+  <div class="card">
+    <div class="ph"><span class="pill tt">TikTok</span><strong>Pixel base code</strong></div>
+    <label>Pixel ID</label>
+    <input id="ttPixel" value="D8SLATJC77U8IPSBLTS0">
+    <div class="btns">
+      <button class="primary" id="ttInit">Install base code &amp; fire page()</button>
+      <button class="ghost" id="ttAll" disabled>Fire all standard events</button>
+    </div>
+    <div class="status" id="ttStatus">Not initialized.</div>
+  </div>
+
+  <!-- Snapchat -->
+  <div class="card">
+    <div class="ph"><span class="pill sc">Snapchat</span><strong>Pixel base code</strong></div>
+    <label>Pixel ID <span style="color:var(--muted)">(Events Manager &rarr; your pixel &rarr; Settings)</span></label>
+    <input id="scPixel" placeholder="Paste your Snapchat Pixel ID">
+    <div class="btns">
+      <button class="primary" id="scInit">Install base code &amp; fire PAGE_VIEW</button>
+      <button class="ghost" id="scAll" disabled>Fire all standard events</button>
+    </div>
+    <div class="status" id="scStatus">Not initialized. (Browser pixel needs only the Pixel ID &mdash; no token.)</div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <strong style="font-size:14px">Activity log</strong>
+      <button class="ghost" id="clear" style="padding:6px 12px">Clear</button>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <p class="sub">After firing, check Events Manager &rarr; <b>Test events</b> (real-time) or <b>Overview</b> (~30 min delay). Keep this to validation &mdash; the values are synthetic.</p>
+</div>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i);};
+  function log(m,c){var l=$("log"),d=document.createElement("div");d.className="line";
+    d.innerHTML='<span class="t">'+new Date().toLocaleTimeString()+'</span>  <span class="'+(c||"")+'">'+m+'</span>';
+    l.appendChild(d);l.scrollTop=l.scrollHeight;}
+
+  // domain awareness
+  (function(){
+    var box=$("domBox"), proto=location.protocol, host=location.hostname;
+    if(proto==="file:"){
+      box.className="dommsg domwarn";
+      box.innerHTML="&#9888; You opened this from a file (<code>file://</code>) &mdash; there is no real domain, so events will be dropped. Serve it over your tailnet HTTPS URL instead (see the instructions in chat).";
+    } else if(host==="localhost"||host==="127.0.0.1"){
+      box.className="dommsg domwarn";
+      box.innerHTML="&#9888; Running on <code>"+host+"</code>. This usually works, but a public <code>.ts.net</code> HTTPS URL is most reliable. Current origin: <code>"+location.origin+"</code>";
+    } else {
+      box.className="dommsg domok";
+      box.innerHTML="&#10003; Served from a real domain: <code>"+location.origin+"</code> &mdash; events will carry this domain. Good to go.";
+    }
+  })();
+
+  var TT_EVENTS=["ViewContent","AddToWishlist","Search","AddPaymentInfo","AddToCart","InitiateCheckout","PlaceAnOrder","CompleteRegistration","CompletePayment"];
+  var SC_EVENTS=["PAGE_VIEW","VIEW_CONTENT","SEARCH","SIGN_UP","ADD_CART","ADD_BILLING","START_CHECKOUT","SUBSCRIBE","AD_VIEW","AD_CLICK","PURCHASE"];
+  var rnd=function(n){return Math.floor(Math.random()*n);};
+
+  // ---- TikTok ----
+  var ttReady=false;
+  $("ttInit").onclick=function(){
+    var pid=$("ttPixel").value.trim(); if(!pid){$("ttStatus").innerHTML='<span class="bad">Enter a Pixel ID.</span>';return;}
+    if(ttReady){log("TikTok already initialized.","y");return;}
+    !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};ttq.load(pid);ttq.page();}(window,document,'ttq');
+    ttReady=true; $("ttAll").disabled=false;
+    $("ttStatus").innerHTML='<span class="ok">Base code installed for '+pid+' &mdash; page() fired.</span>';
+    log("TikTok: loaded events.js (sdkid="+pid+") + page()","g");
+  };
+  $("ttAll").onclick=function(){
+    if(!ttReady){log("Init TikTok first.","bad");return;}
+    log("TikTok: firing "+TT_EVENTS.length+" events...","c");
+    TT_EVENTS.forEach(function(ev,i){setTimeout(function(){
+      try{window.ttq.track(ev,{content_type:"product",content_id:"SKU_"+(rnd(9000)+1000),content_name:"Test Product",currency:"USD",value:rnd(90)+10},{event_id:ev+"_"+Date.now()});
+        log("TikTok track("+ev+")","g");}catch(e){log("TikTok err "+ev+": "+e.message,"bad");}
+    },i*350);});
+  };
+
+  // ---- Snapchat ----
+  var scReady=false;
+  $("scInit").onclick=function(){
+    var pid=$("scPixel").value.trim(); if(!pid){$("scStatus").innerHTML='<span class="bad">Enter your Snapchat Pixel ID.</span>';return;}
+    if(scReady){log("Snapchat already initialized.","y");return;}
+    (function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})(window,document,'https://sc-static.net/scevent.min.js');
+    window.snaptr('init',pid,{}); window.snaptr('track','PAGE_VIEW');
+    scReady=true; $("scAll").disabled=false;
+    $("scStatus").innerHTML='<span class="ok">Base code installed for '+pid+' &mdash; PAGE_VIEW fired.</span>';
+    log("Snapchat: loaded scevent.min.js (init "+pid+") + PAGE_VIEW","g");
+  };
+  $("scAll").onclick=function(){
+    if(!scReady){log("Init Snapchat first.","bad");return;}
+    log("Snapchat: firing "+SC_EVENTS.length+" events...","y");
+    SC_EVENTS.forEach(function(ev,i){setTimeout(function(){
+      try{window.snaptr('track',ev,{currency:"USD",price:rnd(90)+10,item_ids:["SKU_"+(rnd(9000)+1000)]});
+        log("Snapchat track("+ev+")","y");}catch(e){log("Snapchat err "+ev+": "+e.message,"bad");}
+    },i*350);});
+  };
+
+  $("clear").onclick=function(){$("log").innerHTML="";};
+
+  // auto-install TikTok on load (so just opening the URL registers the pixel)
+  window.addEventListener("load",function(){
+    setTimeout(function(){ $("ttInit").click(); }, 600);
+    log("Page loaded. TikTok base code auto-installing; add your Snapchat Pixel ID to enable it.","c");
+  });
+})();
+</script>
+</body>
+</html>

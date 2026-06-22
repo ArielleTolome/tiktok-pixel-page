@@ -1,0 +1,6 @@
+# never publish anything with secrets / local tooling
+fire-events.js
+*.token
+.env
+.vercel
+node_modules
